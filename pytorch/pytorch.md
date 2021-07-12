@@ -289,3 +289,82 @@ plt.show()
 print(f"Label:{label}")
 ~~~
 
+
+
+## 3. Transforms
+
+~~~python
+import torch
+from torchvision import datasets
+from torchvision.transforms import ToTensor Lambda
+
+ds = datasets.FashionMNIST(root = "data",train = True, download =True , transform =ToTensor(),
+                          tartget_transform = Lambda(lambda y :torch.zeros(10,dtype = torch.float).scatter_(0,torh.tensor(y),value = 1)))
+~~~
+
+
+
+## 4. Build Neural Network
+
+torch.nn 命名空间中，提供了创建神经网络的所有基本模块。每一个module都继承于nn.Module。一个神经网络就是一个包含其他modules(layers)的module。
+
+**Get Device for Training**
+
+~~~python
+device = "cuda" if torch.cuda.is_available else "cpu"
+~~~
+
+这是一个小技巧
+
+
+
+**定义神经网络**
+
+通过继承nn.Module 定义我们的神经网络，通过init初始化，每个继承nn.Module 的子类都要实现forward函数
+
+~~~python
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super(NeuralNetwork,self).__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(input_size, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512,10),
+            nn.ReLU()
+        )
+    def forward(self,x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
+~~~
+
+
+
+**使用model**
+
+使用model并不需要显式的调用forward函数
+
+~~~python
+logits = model(X)
+~~~
+
+x.size() = [3,28,28]
+
++ flatten = nn.Flatten()  将二维变成一维的连续数组 ,flatten(x) 的size为[3,784]
++ linear = nn.Linear(in_features = 784, out_features = 20)  linear(x)  的size 为[3,20]
++ nn.ReLU() 非线性激活
++ nn.Sequential 是Module的顺序容器，数据按照module定义的顺序传递
++ nn.Softmax(dim =1)  softmax函数，没什么好说的
+
+**获取模型参数**
+
+nn.Module 会自动记录下模型的参数,可以使用parameters() 或者named_parameters() 方法获得
+
+~~~python
+for name, param in model.named_parameters():
+    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]}")
+~~~
+
