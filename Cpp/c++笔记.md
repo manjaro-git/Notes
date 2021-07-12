@@ -1,5 +1,11 @@
 # CPP 笔记
 
+## 零. 基本语法
+
+### 1. static_assert
+
+
+
 ##  一. 面向对象
 
 ### 1. Class
@@ -23,7 +29,7 @@
 
 默认的，类支持两种拷贝:拷贝的构造和拷贝的赋值。
 
-默认拷贝就是单纯的按照元素逐个拷贝的(element-wise copy).
+默认拷贝就是单纯的**按照元素逐个拷贝**的(element-wise copy).
 
 **访问控制**
 
@@ -155,7 +161,101 @@ private:
 
 **类内的函数定义 **
 
++ 类内函数定义，会变成inline函数，适合小，不常更改，经常使用的函数
 
++ 函数类内定义和类定义一样，可通过#include粘贴多出
+
++ 类内的成员声明是顺序无关的
+
++ ~~~C++
+  #include<iostream>
+  class Data{
+      int d,m,y;
+   public:
+   	Data(int dd):d(dd){
+          
+      }
+     // inline 函数，顺序无关
+      void add_date(int n){d += n;}
+  }
+  ~~~
+
+**const 成员函数**
+
+如果在函数列表后面加上const，这样的函数就是const 成员函数。如下面:
+
+~~~python
+class Data{
+public:
+    void add_month()const{
+        
+    }
+};
+~~~
+
+const 成员函数可以被**const**对象，和**non-const**对象调用，但是如果是非const成员函数，那么只能被非const对象调用。
+
+const是函数的一种属性，如果要声明定义一个const(成员)函数，那么不管是声明还是定义，都必然要在参数列表后面加上const。
+
+#### 1.2  const 和 mutability 
+
+很多时候，我们对于一个数据可能大多时候保持不变，但是偶尔需要改变，或者说对于用户而言，并不直接改变，但是在无法观测到的地方需要改变，这就要考虑类内数据的可变性问题。
+
+**小对象，小数据的改变**
+
+如果是比较小的对象，且类内数据只有少数需要更改，可以使用mutable关键字,如下：
+
+~~~c++
+class Data{
+    mutable double m_Data;
+ public:
+    Data(int data):m_Data(data){
+        
+    }
+    
+    void Change(int n)const{ m_Data += data;}
+};
+
+void main(){
+    const Data cd(10);
+    cd.Change(20); // ok,m_Data为mutable，即使cd为const，也可调用更改
+}
+~~~
+
+
+
+**大对象，多数据的改变**
+
+mutable这种方式，只适合小对象的小部分数据，如果是比较复杂的数据，可以使用cache的方法:
+
+~~~c++
+struct Cache{
+double data,
+bool valid;
+std::string str;
+};
+
+class Data{
+    Cache* c;
+public:
+    Data(Cache *c_init):c(c_init){}
+    void Change()cosnt{
+        c->data = 100;
+        c->vaild = false;
+        c->str = "Cache";
+    }
+};
+~~~
+
+对于Data来说，Cache* c 并没有改变，然而其实我们还是修改了data，valid等值，这种方法可进一步扩展，称为“惰性求值"
+
+### 1.3 this 与 static
+
+**this**
+
+
+
+**static 成员**
 
 
 ##  二. 标准库和泛型编程
