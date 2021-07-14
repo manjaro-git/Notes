@@ -249,7 +249,7 @@ public:
 
 对于Data来说，Cache* c 并没有改变，然而其实我们还是修改了data，valid等值，这种方法可进一步扩展，称为“惰性求值"
 
-### 1.3 this 与 static
+ #### 1.3 this 与 static
 
 **this**
 
@@ -267,6 +267,8 @@ public:
 C++ Programming Web Resource ：[3D Game Engine Programming](https://www.3dgep.com/tag/filesystem/)
 
 C/C++ MemoryManagement : [Building your own memory manager for C/C++ projects – IBM Developer](https://developer.ibm.com/tutorials/au-memorymanager/?mhsrc=ibmsearch_a&mhq= )
+
+游戏编程模式: [命令模式 · Design Patterns Revisited · 游戏设计模式 (tkchu.me)](https://gpp.tkchu.me/command.html)
 
 ###  1. OpenGL
 ###  2. Hazel

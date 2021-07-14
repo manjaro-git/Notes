@@ -444,3 +444,87 @@ pairs.sort(key = lambda pair:pair[1])
 
 ![image-20210712121058244](images/image-20210712121058244.png)
 
+
+
+## 5. 数据结构
+
+#### 5.1 列表
+|函数名称| 原型|用法|
+|---|---|---|
+|append|append(item) |追加一个元素|
+|extend|extend(iterable)|用可迭代对象扩展列表|
+|insert|insert(index,item)|在索引index处插入元素|
+|remove|remove(item)|删除列表中第一个item,未找到指定元素时，触发**ValueError**异常|
+|pop|pop(index)|删除列表中指定位置元素并返回被删除元素，未指定位置则删除最后一个元素|
+|clear|clear()|删除所有元素，相当于 del a[:]|
+|count|count(x)|返回列表中x出现的次数|
+|sort|sort(\*,key = None,reverse = False)|排序|
+|reverse|reverse()|反转列表中的元素|
+|copy|copy()|返回列表的拷贝|
+
+一些使用的例子如下:
+
+![image-20210714075343530](images/image-20210714075343530.png)
+
+**note:**用列表实现堆栈非常方便，只需要append和pop()就能实现，但是使用列表实现队列效率很低，因为在列表的末尾添加和删除元素非常快，但是在列表开头插入和删除元素非常慢。
+
+**实现队列最好用collections.deque**，可以快速从两端添加或删除元素.
+
+![image-20210714080000750](images/image-20210714080000750.png)
+
+
+
+**列表推导式**
+
+格式为: expression + n*(for | if )
+
+常见的用法为，对序列或可迭代对象中的每一个元素应用某种操作，用生成的结果创建新的列表，或用满足特定条件的元素创建子列表。
+
+例如创建平方值的列表 :
+
+![image-20210714080332468](images/image-20210714080332468.png)
+
+**上述循环结束后， 变量x仍然存在，使用下面方法可以无副作用的计算平方列表**
+
+~~~python
+squares = [x**2 for x in range(10)]
+~~~
+
+
+
+另一个例子:
+
+~~~python
+[(x, y) for x in [1,2,3] for y in [2,4,5] if x!= y]
+~~~
+
+**嵌套的列表推导式**
+
+~~~python
+[[row[i] for row in matrix] for i in range(4)]
+~~~
+
+上面这个例子等价于
+
+~~~python
+transposed = []
+for i in range(4):
+    transposed.append([row[i] for row in matrix])
+~~~
+
+
+
+实际的应用中，最好用内置函数来替代复杂的流程语句,此时用zip()函数更好:
+
+~~~python
+list(zip(*matrix))
+~~~
+
+上面的应用是使用zip 和 * 配合进行解包然后拼接
+
+#### 5.2 del 语句
+
+del 语句按索引而不是值从列表中移除元素。
+
+![image-20210714084912149](images/image-20210714084912149.png)
+
