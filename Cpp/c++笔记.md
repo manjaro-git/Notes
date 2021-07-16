@@ -347,3 +347,108 @@ project "sandbox"
 
 ###  4. GLFW
 ###  5. Spdlog
+
+
+
+## 四. Desing Patterns
+
+### 1. 命令模式
+
+将命令/请求/事件变成对象。这就是函数回调的面向对象版本
+
+~~~C++
+class Command{
+public:
+    virtual void execute() = 0;
+};
+
+class JumpCommand:public Command{
+public:
+    virtual void execute()override {jump();}
+};
+
+class RunCommand:public Command{
+public:
+    virtual void execute()override {run();}
+};
+class FightCommand:public Command{
+public:
+    virtual void execute()override {fight();}
+};
+
+class InputHandler{
+private:
+    Command* button_x;
+    Command* button_y;
+    Command* button_z;
+};
+void InputHandler::Handle(){
+    if(IsPressed(BUTTONX)) button_x->execute();
+    if(IsPressed(BUTTONY)) button_y->execute();
+    if(IsPressed(BUTTONZ)) button_z->execute();
+}
+~~~
+
+**Notes:将抽象的概念具象化,从而更加方便处理**
+
+进一步，将命令作为第一考虑对象，我们可以构建如下的基于命令流的结构:
+
+![image-20210714165553809](images/image-20210714165553809.png)
+
+由输入器或者AI产生一堆命令，通过一个类似队列的命令流，然后传给解释器或者Actor角色对象，它们会消耗或者使用命令。这就是一种对生产者消费者的解耦。
+
+下面是把命令作为第一对象，而游戏角色作为命令对象的参数的例子:
+
+~~~C++
+class Role{
+public:
+    void jump();
+    void run();
+};
+
+class Command{
+public:
+    virtual void execute(Role* role) = 0;
+};
+
+class JumpCommand:public Command{
+public:
+    virtual void execute(Role* role) override{
+        role->jump();
+    }
+};
+
+class RunCommand:public Command{
+public:
+    virtual void execute(Role* role) override{
+        role->run();
+    }
+};
+
+class InputHandler{
+public:
+    // 将命令作为第一对象返回，我们可以通过这种方法实现一种懒处理
+    Command* handle(){
+        if(IsPressed(button_x)) return new JumpCommand();
+        if(ISPressed(button_y)) return new RunCommand();
+        return nullptr;
+    }
+};
+
+void main(){
+    Role *role = GetRole();
+    while(true){
+        Command* command = handle();
+        if(command){
+            command->execute(role);
+        }
+    }
+}
+~~~
+
+
+
+**有了命令作为对象，我们还可以实现撤销的动作，只要实现一个命令列表，用一个当前current指针指向现在的命令，如果要撤销，就移动指针退后，具体情况如下:**
+
+![image-20210714171212603](images/image-20210714171212603.png)
+
