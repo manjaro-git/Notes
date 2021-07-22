@@ -823,3 +823,582 @@ __all__ =["echo", "surround", "reverse"]
 + 绝对路径导入   from sound.effects import echo
 + 相对路径导入    from ..filters import echo
 
+
+
+## 7. 输入输出
+
+### 7.1 字符串输出
+
++ 格式化字符串字面值，在字符串前面使用f或F,在{}里面填充变量，具体如下
+
+  ~~~python
+  year = 2021
+  event = "Referendum"
+  f'Results of the {year} {event}'
+  ~~~
+
+  ![image-20210717100209783](images/image-20210717100209783.png)
+
++ 字符串的str.format() 方法支持更详细的格式化指令，但需要提供格式化信息
+
+  ~~~python\
+  yes_votes = 42_572_654
+  no_votes = 43_132_495
+  percentage = yes_votes / (yes_votes + no_votes)
+  '{:-9} YES votes {:2.2%}'.format(yes_votes, percentage)
+  ~~~
+
++ 按照字符串切片和合并操作完成字符串处理操作
+
++ 只想快速将变量显示成字符串，可以用repr() 或 str() 函数把值转化成字符串
+
+**str()函数返回供人阅读的值，repr() 则生成适于解释器读取的值。**
+
+![image-20210717101629626](images/image-20210717101629626.png)
+
+
+
+
+
+### 7.2  f字符串格式化
+
+f字符串的标准格式为:f'....{expresssion:格式说明符}'
+
+~~~python
+import math
+print(f'The value of pi is approximately {math.pi":.3f}')
+~~~
+
+![image-20210717103904288](images/image-20210717103904288.png)
+
+在 ':'后传递整数，为该字段设置最小字符宽度，常用于列对齐:
+
+![image-20210717104137565](images/image-20210717104137565.png)
+
+还有一些修饰符可以在**格式化前转换值，应用!a 使用ascii(),应用!s 使用str(), 应用!r 应用repr()**
+
+![image-20210717104403111](images/image-20210717104403111.png) 
+
+### 7.3 字符串format()方法
+
+str.format() 方法的基本用法如下所示:
+
+~~~python
+print('We are the {} who say "{}!"'.format('knights','Ni'))
+~~~
+
+~~~python
+print('{0} and {1}'.format('spam', 'eggs'))
+print('{1} and {0}'.format('spam','eggs'))
+# 使用关键字参数名引用值
+print('This {food} is {adjective}'.format(food = "spam", adjective = "absolutely horrible"))
+~~~
+
+位置参数和关键字参数可以混用
+
+
+
+**\*\***解包字典，具体如下
+
+~~~python
+table = {"sjoerd": 4127, "Jack":4098, "Dcab":8638}
+print("Jack: {Jack:d}; sjoerd:{Sjoerd:d};Dcab:{Dcab:d}".format(**table))
+~~~
+
+![image-20210717105259489](images/image-20210717105259489.png)
+
+
+
+### 7.3 读写文件
+
+open() 返回file object ,最常用的参数有两个： open(filename,. mode)
+
+~~~python
+f = open("workfile", "w")
+~~~
+
+| mode | 功能 |
+| ---- | ---- |
+| r    | 读 |
+|w| 写|
+|a|追加|
+|r+|读写|
+
+
+
+通常，文件以 text mode 打开，即，从文件中读取或写入字符串时，都以指定编码方式进行编码。如未指定编码，默认值与平台相关。在mode中追加'b'，则以binary mode 打开文件，此时数据以字节对象的形式进行读写。**该模式用于所有不包含文本的文件**。
+
+在文本模式下读取文件时，默认把平台特定的行结束符转换为\n.在文本模式下写入数据时，默认把\n转换回平台特定结束符。这种操作方式在后台修改文件数据对文本文件来说没有问题，但会破坏JPEG或exe等二进制文件中的数据。注意，在读写此类文件时，一定要使用二进制模式。
+
+在处理文件对象时，最好使用with关键字，优点是，字句体结束后，文件会正确关闭，即使触发异常也可以。而且，使用with相比等效的try-finally代码简洁的多：
+
+~~~python
+with open("workfile") as f:
+    read_data = f.read()
+~~~
+
+通过with语句，或调用f.close()关闭文件对象后，再次使用该文件对象将会失败。
+
+
+
+### 7.4 文件对象方法
+
+f.read(size):可用于读取文件内容，并返回字符串(文本模式),返回字节对象(在二进制模式).size 是可选的参数，**省略size或size为负数时，读取并返回整个文件的内容**。size 为其他值时，读取并返回最多size个字符(文本模式)或size个字节（二进制模式）。如果到达文件末尾，f.read()返回空字符串('').
+
+![image-20210721170351754](images/image-20210721170351754.png)
+
+f.readline() 从文件中读取单行数据，**字符串末尾保留换行符"\n"**,只有在文件不以换行符结尾时，文件的最后一行才会省略换行符，只要readline()返回空字符串，就表示已经到达文件末尾，空行使用'\n'表示，该字符串只包含一个换行符。
+
+如果需要读取多行，可以使用循环遍历整个文件对象，这种操作能**高效利用内存，且代码简单**
+
+~~~python
+for line in file:
+    print(line, end='')
+~~~
+
+如果需要以列表形式读取文件中的所有行，可以用list(f),或者f.readlines()
+
+![image-20210721172055172](images/image-20210721172055172.png)
+
+
+
+f.write(string) : 把string的内容写入文件,并**返回写入的字符数量**
+
+![image-20210721172404323](images/image-20210721172404323.png)
+
+
+
+**写入其他类型的对象前，要先把它们转化为字符串**（文本模式）或字节对象（二进制模式）：
+
+~~~python
+value = ('the answer', 42)
+s = str(value)
+f.write(s)
+~~~
+
+
+
+f.tell() 返回整数，给出文件对象在文件中的当前位置，表示为二进制模式下是从文件开始的字节数，以及文本模式下的意义不明的数字。
+
+![image-20210721173424140](images/image-20210721173424140.png)
+
+
+
+f.seek(offset, whence) 可以改变文件对象的位置，通过向参考点添加offset计算位置，参考点由whence参数指定。whence值为0时，表示从文件开头计算，1表示使用当前文件位置，2表示使用文件末尾作为参考点，省略whence时，其默认值为0，即使用文件开头作为参考点。
+
+![image-20210721174327606](images/image-20210721174327606.png)
+
+在文本文件中，只允许相对于文件开头搜索。
+
+
+
+### 7.5 使用json保存结构化数据
+
+从文件写入或读取字符串很简单，数字则稍显麻烦，**因为read()方法只返回字符串**,这些字符串必须传递给**int()**这样的函数，接受’123’，返回数字值123。保存嵌套列表，字典等复杂数据类型时，手动解析和序列化的操作非常复杂。
+
+python支持JSON这种流行数据交换格式，用户无需没完没了地编写，调试代码，才能把复杂地数据类型保存到文件。json标准模块采用python数据层次结构，并将之转换为字符串表示形式。这个过程称为serializing(序列化).从字符串表示中重建数据称为deserializing(解序列化)。在序列化和解序列化之间，表示对象的字符串可能已经存储在文件或数据中，或通过网络连接发送到远方的机器。
+
+只需一行简单的代码即可查看某个对象的JSON字符串表现形式:
+
+~~~python
+import json
+x = [1, "simple", "list"]
+json.dumps(x)
+~~~
+
+dumps()函数还有一个变体，dump，它只将对象序列化为text file，因此，如果f是text file对象，可以这样做:
+
+~~~python
+json.dump(x, f)
+~~~
+
+要再次解码对象，如果f是已经打开，供读取的text file 对象:
+
+~~~python
+x = json.load(f)
+~~~
+
+这种简单的序列化技术可以处理列表和字典，但在JSON中序列化任意类的实例，则需要付出额外努力。
+
+  
+
+## 9. 类
+
+### 9.1 python作用域和命名空间
+
+namespace 是一个从名字到对象的映射。当前大部分命名空间都由python字典实现，但一般情况下不会去关注它们（除了要面对性能问题时).命名空间的例子，比如存放内置函数的集合，模块中的全局名称。
+
+
+
+属性：任何跟在一个点号之后的名称都称为属性。
+
+属性可以是只读或者是可写的，如果是后者，那么对属性的赋值是可行的。模块属性是可写的，你可以写modname.the_answer = 23.**可写的属性同样可以用del语句删除**，例如del modname.the_answer 将会从名为modname的对象中删除the_answer属性。
+
+命名空间在不同时刻被创建，拥有不同的生存期。**包含内置名称的命名空间是在python解释器启动时创建的，永远不会被删除**，模块的全局命名空间在模块定义被读入时创建，通常，模块命名空间也会持续到解释器退出。被解释器的顶层调用执行的语句（从一个脚本文件读取或交互式地读取）被认为是\_\_main\_\_模块调用的一部分，因此它们拥有自己的全局命名空间。（内置名称实际上也存在于一个模块中，这个模块被称为builtins)
+
+一个函数的本地命名空间在这个函数被调用时创建，并在函数返回或抛出一个不在函数内部处理的错误时被删除。当然，每次递归调用都会有它自己的本地命名空间。
+
+一个作用域时在一个命名空间可直接访问的python程序的文本区域，这里“可直接访问”以为着对名称的非限定引用会尝试在命名空间中查找名称。
+
+虽然作用域是静态地确定地，但它们会被动态地使用。在执行期间地任何时刻，会有3或4个命名空间可被直接访问地嵌套作用域:
+
++ 最先搜索地最内部作用域包含局部名称
++ 从最近地封闭作用域开始搜索地任何封闭函数的作用域包含非局部名称，也包括非全局名称
++ 倒数第二个作用域包含当前模块的全局名称
++ 最外面的作用域（最后搜索）是包含内置名称的命名空间
+
+下面这个例子演示了如何引用不同作用域和名称空间，以及global和nonlocal会如何影响变量绑定:
+
+~~~python
+def scope_test():
+    def do_local():
+        spam = "local spam"
+    def do_nonlocal():
+        nonlocal spam
+        spam = "nonlocal spam"
+    def do_global():
+        global spam
+        spam = "global spam"
+        
+    spam = "test spam"
+    do_local()
+    print("After local assignment:", spam)
+    
+    do_nonlocal()
+    print("After nonlocal assignment:", spam)
+    
+    do_global()
+    print("After global assignment:", spam)
+scope_test()
+print("In global scope:", scope)
+~~~
+
+![image-20210722090115353](images/image-20210722090115353.png)
+
+请注意，**局部**(默认状态)赋值不会改变scope_test对spam的绑定，nonlocal赋值会改变scope_test对spam的绑定，而global赋值会改变模块层级的绑定。
+
+### 9.2 初探类
+
+类引入了一些新语法，三种新对象和一些新语义
+
+#### 9.2.1 类定义语法
+
+最简单的类定义看起来像这样:
+
+~~~python
+class ClassName:
+    <statement-1>
+    ...
+    <statement-n>
+~~~
+
+**类定义与函数定义一样(def语句)，必须被执行才会起作用。**当进入类定义时，会创建一个新的命名空间，并将其用作局部作用域--因此，所有对局部变量的赋值，都是在这个新命名空间之内。特别的，函数定义会绑定到这里的新函数名称。
+
+当（从结尾处）正常离开类定义时，将创建一个**类对象**。这基本上时一个包围在类定义所创建命名空间内容周围的包装器。原始的（在进入类定义之前起作用的）局部作用域将重新生效，类对象将在这里被绑定到类定义头所给出的类名称。
+
+
+
+#### 9.2.2 类对象
+
+类对象支持两种操作：属性引用和实例化
+
+**属性引用**使用python中素有属性引用所使用的标准语法:obj.name.有效的属性名称是类对象被创建时存在于类命名空间中的所有名称。因此，如果类定义是这样的：
+
+~~~python
+class MyClass:
+    """A simple example class"""
+    i = 12345
+    def f(self):
+        return "Hello, world"
+~~~
+
+那么MyClass.i 和MyClass.f 就是有效的属性引用，将分别返回一个整数和一个**函数对象**。类属性也可以被赋值，因此通过赋值来更改MyClass.i的值。\_\_doc\_\_也是一个有效的属性，将返回所属类的文档字符串:"A simple example class".
+
+![image-20210722092150689](images/image-20210722092150689.png)
+
+**类的实例化**
+
+类的**实例化**使用函数表示法。
+
+~~~python
+x = MyClass()
+~~~
+
+创建类的**新实例**并将此对象分配给局部变量x。**可以把类对象视为是返回该类的一个新实例的不带参数的函数。**
+
+
+
+实例化操作会创建一个空对象。许多类喜欢创建带有特定初始状态的自定义实例。为此类定义可能包含一个名为\_\_init\_\_()的特殊方法，就像这样:
+
+~~~python
+def __init__(self):
+    self.data = []
+~~~
+
+当一个类定义了\_\_init\_\_()方法时，类的实例化操作会自动为新创建的类实例发起调用\_\_init\_\_()。因此在这个示例中，可以通过以下语句获得一个经初始化的新实例:
+
+~~~python
+x = MyClass()
+~~~
+
+当然，\_\_init\_\_()方法还可以有额外参数以实现更高灵活性。在这种情况下，提供给类实例化运算符的参数将被传递给\_\_init\_\_().例如：
+
+~~~python
+class Complex:
+    def __init__(self, realpart, imagepart):
+        self.r = realpart
+        self.i = imagepart
+ 
+x = Complex(3.0, -4.5)
+x.r, x.i
+(3.0, -4.5)
+~~~
+
+![image-20210722093810640](images/image-20210722093810640.png)
+
+
+
+
+
+#### 9.2.3 实例对象
+
+实例对象所能理解的唯一操作是**属性引用**。有两种有效的属性名称：数据属性和方法
+
+根据定义，**一个类中所有是函数对象的属性，都是定义了其实例的相应方法。**
+
+**注意区分实例方法和类的函数对象**。
+
+~~~python
+x = MyClass()
+~~~
+
+x.f 和MyClass.f 不是一回事，x.f是一个方法对象，而MyClass.f是一个函数对象。
+
+
+
+#### 9.2.4 方法对象
+
+通常，方法在绑定后立即调用:
+
+~~~python
+x.f()
+~~~
+
+
+
+在MyClass 示例中，这将返回字符串“Hello,World"。但是，立即调用一个方法不是必须的:x.f 是一个方法对象，它可以被保存起来以后再调用。例如：
+
+~~~python
+xf = x.f
+while True:
+    print(xf())
+
+# 上面的代码将持续打印Hello,World
+~~~
+
+方法的特殊之处就在于：**实例对象**会作为函数的第一个参数被传入
+
+~~~ python
+class MyClass:
+    def f(self):  # 函数对象
+        return "Hello,world"
+    
+x = MyClass
+x.f()  # 方法对象
+~~~
+
+
+
+### 9.3 类和实例变量
+
+一般来说，实例变量是用于每个实例的唯一数据，而类变量用于类的所有实例共享的属性和方法
+
+~~~python
+class Dog:
+    kind = "canine"  # 所有实例共享的类变量
+    
+    def __init__(self, name):
+        self.name = name  # 每个实例独有的实例变量
+~~~
+
+![image-20210722100657816](images/image-20210722100657816.png)
+
+**共享数据可能在涉及mutable对象例如列表和字典的时候导致令人惊讶的结果。**
+
+~~~python
+class Dog:
+    tricks = []  # mistaken use of a class variable
+    
+    def __init__(self, name):
+        self.name = name
+    
+    def add_trick(self, trick):
+        self.tricks.append(trick)
+~~~
+
+
+
+正确的类设计应该使用实例变量
+
+~~~python
+class Dog:
+    def __inti__(self, name):
+        self.name = name
+        self.tricks = []  # 每条狗创建一个新的空列表
+    def  add_trick(self, trick):
+        self.tricks.append(trick)
+~~~
+
+
+
+### 9.4 继承
+
+如果不支持结成，语言特性就不值得称为”类“。派生类定义的语法如下所示：
+
+~~~python
+class DerivedClassName(BaseClassName):
+    <statement-1>
+    ...
+    <statement-2>
+~~~
+
+名称为BaseClassName必须定义于包含派生类的作用域中。如果基类定义在另一个模块中的时候:
+
+~~~python
+class DerivedClassName(modname.BaseClassName)
+~~~
+
+派生类定义的执行过程与基类相同，当构造派生类对象时，基类会被记住，此信息将被用来解析属性引用：如果请求的属性在类中找不到，搜索将转往基类中进行查找，如果基类本身也派生自其他类，则递归进行查找。
+
+**python中所有的方法实际上都是virtual方法，也就是说派生类只要实现同样的函数，就会覆盖掉基类函数**。
+
+python中有两个内置函数可被用于继承机制：
+
++ 使用isinstance() 来检查一个实例的类型：isinstance(obj, int) 仅会在obj.\_\_class\_\_为int或某个派生自int的类时为True
++ 使用issubclass() 来检查类的继承关系：issubclass(bool, int) 为True，因为bool是int的子类。但是，issubclass(float,int)为False,因为float不是int的子类。
+
+#### 9.4.1 多继承
+
+~~~python
+class DerivedClassName(Base1, Base2, Base3):
+    <statement-1>
+    ...
+    <statement-2>
+~~~
+
+### 9.5 私有变量
+
+那种仅限从一个对象内部访问的”私有“实例变量在python中**并不存在**。但是，大多数python代码都遵循这样一个约定：带有一个下划线的名称(例如_spam)应该被当作是API的非共有部分。
+
+但存在对于类私有成员的有效使用场景，因此存在对此种机制的有限支持，称为**名称改写**，任何形式为\_\_spam的标识符（至少带有两个前缀下划线，至多一个后缀下划线）的文法被替换为_classname__spam,其中classname为去除了前缀下划线的当前类的名称。
+
+~~~python
+class Mapping:
+    def __init__(self, iterable):
+        self.items_list =[]
+        self.__update(iterable)
+    def update(self, iterable):
+        for item in iterable:
+            self.items_list.append(item)
+            
+    __update = update  # 原来update()方法的私有拷贝
+    
+class MappingSubclass(Mapping):
+    def update(self,keys, values):
+        # 为update提供了新的签名，但是不会break __init__()函数
+        for item in zip(keys, values):
+            self.items_list.append(item)
+~~~
+
+上面的示例即使在MappingSubclass中引入__update标识符也不会出错，因为它会在Mapping类中被替换为\_Mapping\_\_update 而在MappingSubclass类中被替换为\_MappingSubclass\_\_update。
+
+### 9.6 杂项说明
+
+有时会需要使用类似Pascal 的“record"或c的”struct“这样的数据类型，将一些命名数据像捆绑在一起。这种情况适合定义一个空类
+
+~~~python
+class Employee:
+    pass
+
+john = Employee() # 创建一个空的额employee记录
+
+# Fill the fields of the record
+john.name = "John Doe"
+john.dept = "computer lab"
+john.salary = 1000
+~~~
+
+**实例方法对象也具有属性:m.\_\_self\_\_就是带有m()方法的实例对象，而m.\_\_func\_\_则是该方法对应的函数对象**
+
+### 9.7 迭代器
+
+到目前为止，您可能已经注意到大多数容器对象都可以使用for语句:
+
+~~~python
+for element in [1,2,3]:
+    print(element)
+
+for element in (1,2,3):
+    print(element)
+    
+for element in {"one":1,"two":2}:
+    print(element)
+    
+for element in open("myFile.txt"):
+    print(element)
+~~~
+
+
+
+for语句会在容器对象上调用iter().该函数返回一个定义了\_\_next\_\_()放法的迭代器对象，此方法将逐一访问容器中的元素。当元素用尽时，\_\_next\_\_（）将引发StopIteration异常来通知终止for循环。你可以使用next()内置函数来调用\_\_next\_\_()方法：
+
+![image-20210722110327162](images/image-20210722110327162.png)
+
+看多迭代器协议的幕后机制，给你的类添加迭代器行为就很容易了，定义一个\_\_iter\_\_()方法来返回一个带有\_\_next\_\_()方法的对象。如果类已经定义了\_\_next\_\_()，则\_\_iter\_\_()可以简单地返回self:
+
+~~~python
+class Reverse:
+    """Iterator for looping over a sequence backwards"""
+    def __init__(self, data):
+        self.data = data
+        self.index = len(data)
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.index ==0:
+            raise StopIteration
+        self.index = self.index -1
+        return self.data[self.index]
+   
+rev = Reverse("spam")
+for item in rev:
+    print(rev)
+~~~
+
+### 9.8 生成器
+
+生成器是一个用于创建迭代器地简单而强大地工具。它们地写法类似于标准地函数，但当它们要返回数据时会使用yield语句。每次在生成器上调用next()时，它会从上次离开地位置回复执行（它会记住上次执行语句时地所有数据值).
+
+~~~python
+def reverse(data):
+    for index in range(len(data)-1, -1, -1):
+        yield data[index]
+   
+for char in reverse("golf"):
+    print(char)
+~~~
+
+可以用生成器来完成地操作同样可以用前一节地基于类地迭代器来完成。但生成器地写法更为紧凑，因为它会自动创建\_\_iter\_\_() 和\_\_next\_\_()方法。当生成器终结时，它们还会自动引发StopIteration。这些特性结合在一起，使得创建迭代器能与编写常规函数一样容易。
+
+
+
+### 9.9 生成器表达式
+
+某些简单地生成器可以写成简洁地表达式代码，所用语法与列表推导式类似，但外层为圆括号而非方括号。这种表达式被设计用于生成器将立即被外层函数所使用地情况。生成器表达式相比完整地生成器更紧凑但较不灵活，相比等效地列表推导式更为节省内存。
+
+例如:
+
+![image-20210722113608930](images/image-20210722113608930.png)
+
