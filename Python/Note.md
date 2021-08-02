@@ -1402,3 +1402,116 @@ for char in reverse("golf"):
 
 ![image-20210722113608930](images/image-20210722113608930.png)
 
+## 10.装饰器
+
+装饰器:借用闭包的原理，不需要改动源代码和调用方式，就可以直接添加功能
+
+
+
+## 11. 常用模块
+
+### 11.1 os 模块
+
+| 函数名   | 功能         |
+| -------- | ------------ |
+| os.getcwd() | 获取当前路径 |
+|os.listdir()|将当前目录下的文件和目录列出来(列表的形式)|
+| os.path.isfile()|判断是否为文件|
+| os.path.isdir()| 判断是否为目录|
+| os.path.isabs()| 判断是否是绝对路径|
+|os.path.abspath()|给定相对路径，返回绝对路径|
+|os.remove()| 删除文件|
+|os.path.exists()| 检验给处的路径是否存在|
+|os.path.split()|返回路径的最后一级和之前的分开(以元组形式返回)|
+|os.path.splitext()| 分离拓展名(以元组方式返回) |
+|os.paht.dirname()| 获取路径名（以字符串形式返回) |
+|os.path.basename()| 获取文件名(带拓展）|
+|os.system("command") | 运行shell命令|
+|os.chmod(file) | 修改文件的权限|
+|os.path.join(dir,filename) | 将目录和文件名拼接起来|
+
+### 11.2 sys模块
+
++ sys.argv  命令行参数，第一个参数是python脚本路径
++ sys.version   获取python解释器的版本信息
++ sys.platform 返回操作系统平台名称
++ sys.getrecursionlimit()  获取最大递归层数
++ sys.setrecursionlimit(1000)  设置最大递归数
++ sys.getdefaultencoding()   获取解释器默认编码
++ sys.getfilesystemencoding() 获取文件系统的默认编码 
+
+### 11.3 pickle 模块 & json模块
+
+存取复杂的对象到硬盘上
+
+序列化
+
+~~~python
+import pickle
+pickle.dumps(obj)
+~~~
+
+
+
+反序列化
+
+~~~python
+import pickle
+pickle.loads(dmp)
+~~~
+
+写入文件
+
+~~~python
+import pickle
+
+# 第一种方式，先序列化，然后使用文件二进制写入
+data = {....}
+dmps = pickle.dumps(data)
+f = open("game.pkl","wb")
+f.write(dmps)
+
+# 第二种方法，将序列化和文件写入何为一体
+f = open("game.pkl", "wb")
+pickle.dump(data, f)  # f必须是一个已经打开的文件
+~~~
+
+
+
+Notes:如果要将pkl中的数据取出来，那么dump几次，就要load几次，load获得的数据顺序是从前往后的。
+
++ dump 写入文件
++ dumps 生成序列化的字符串
++ load 从文件加载
++ loads 反向序列化
+
+
+
+**json模块**
+
+用法和pickle模块一模一样
+
+pickle ： python 专用
+
+json ：所有语言都可以用
+
+json 将对象转换成字符串
+
+**json只能dump一次，不然load的时候会失败**
+
+**pickle vs json**
+
++ pickle 
+  + 只支持python
+  + 支持python里面的所有数据类型
+  + class -> object, function, datetime 都可以支持
++ json
+  + 所有语言都支持
+  + 只支持常规数据类型  str,int, dict,set,list,tuple
+
+### 11.4  random模块
+
+### 11.5 正则模块
+
+
+

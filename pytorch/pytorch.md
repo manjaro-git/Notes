@@ -27,7 +27,6 @@
 		例子 : shape = (2, 3, ) # shape 是表示形状的元组
 			rand_tensor = torch.rand(shape)
 
-
 **1.3 tensor的属性**
 
    	1. shape
@@ -58,7 +57,7 @@ if torch.cuda.is_available():
     tensor = tensor.to("cuda")
 ~~~
 
-**1）. 标准的类numpy 的索引和切皮**
+**1）. 标准的类numpy 的索引和切片**
 
 ~~~python
 tensor = torch.ones(4,4)
@@ -75,7 +74,7 @@ print(tensor)
 t1 = torch.cat([tensor, tensor, tensor],dim = 1) # 按照维度1拼接tensor
 ~~~
 
-**3）.  数值操作**
+**3） . 数值操作**
 
 ~~~python
 y1 = tensor @ tensor.T   # 矩阵乘法
@@ -122,7 +121,7 @@ Notes:In-place operations save some memory, but can be problematic when computin
 tensor to numpyarray
 
 ~~~python
-t = torch.onesy()
+t = torch.ones(size)
 print(f"t:{t}")
 
 n = t.numpy()
@@ -191,7 +190,7 @@ test_data = datasets.FashionMNIST(root = "data", train = False, download =True, 
 
 **遍历和可视化**
 
-想列表一样遍历Datasets ，使用matplotlib进行可视化
+像列表一样遍历Datasets ，使用matplotlib进行可视化
 
 ~~~python
 labels_map = {  # 标签的映射
@@ -302,6 +301,14 @@ ds = datasets.FashionMNIST(root = "data",train = True, download =True , transfor
                           tartget_transform = Lambda(lambda y :torch.zeros(10,dtype = torch.float).scatter_(0,torh.tensor(y),value = 1)))
 ~~~
 
+这个小技巧非常好:
+
+~~~python
+lambda y: torch.zeros(10,dtype=torch.float).scatter_(0,torch.tensor(y),value = 1)
+
+# 创建1-k 的虚拟向量
+~~~
+
 
 
 ## 4. Build Neural Network
@@ -366,5 +373,121 @@ nn.Module 会自动记录下模型的参数,可以使用parameters() 或者named
 ~~~python
 for name, param in model.named_parameters():
     print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]}")
+~~~
+
+
+
+## 5. 使用torch.autograd 自动求导
+
+当训练神经网络时，最经常使用的算法是反向传播算法。在算法中，参数根据算是函数的梯度调整。
+
+为了计算哪些梯度，pytorch有一个内置的求导引擎叫做`torch.autograd`,它支持任意的计算图的自动求导。
+
+考虑最简单的一层神经网络:
+
+~~~python
+import torch
+x = torch.ones(5)
+y = torch.zeros(3)
+w = torch.randn(5,3,requires_grad =True)
+b = torch.randn(3,requires_grad = True)
+z = torch.matmul(x, w) + b
+loss = torch.nn.functional.binary_cross_entropy_with_logits(z,y)
+~~~
+
+上述代码对应的计算图如下所示：
+
+![image-20210723110812911](images/image-20210723110812911.png)
+
+在这个网络中，`w` 和`b`都是参数，我们需要优化它们，为了求导优化，我们需要设置`requires_grad`为True。
+
+> 你可以在创建向量时设置`requires_grad=True`,或者之后再使用`x.requires_grad_(True)`。
+
+我们用来构造tensor的计算图的函数，其实是类Function的对象。这个对象知道在前向方向怎么计算函数，在后向传播怎么计算导数。向量中的`grad_fn`属性指向后向传播函数。
+
+~~~python
+print("Gradient function for z=",z.grad_fn)
+print("Gradient function for loss=",loss.grad_fn)
+~~~
+
+### 5.1 计算梯度
+
+为了优化圣经网络中参数的权值，我们需要计算损失函数关于参数的导数，也就是，我们需要计算$\frac{\partial{loss}}{\partial{w}}$和$\frac{\partial{loss}}{\partial{b}}$(在给定`x`和`y`的值的情况下)。为了计算哪些导数，我们调用loss.backward(),然后从`w.grad` 和`b.grad`中得到梯度值
+
+~~~python
+loss.backward()
+print(w.grad)
+print(b.grad)
+~~~
+
+> + 我们只可以获取计算图中叶子节点的导数，并且叶子节点的`requires_grad`属性要设置为`True`。所有在图中的节点，它们的导数都不能获得。
+> + 在一个给定的计算图上，为了性能的考虑，我们只执行一次导数计算，如果我们需要在同一个计算图上多次`backward`，我们需要传递`retain_graph=True`给`backward`调用。
+
+
+
+### 5.2 禁止梯度追踪
+
+默认的，所有的`requires_grad=True`的向量都会追踪它们的计算历史并且支持梯度计算。但是有一些情况下我们不需要这样做，比如，当我们已经训练完了模型，然后想将模型运用在一些输入数据上时，我们只希望执行`forward`操作。我们可以通过把我们的代码包含在`torch.no_grad()`里面来停止追踪计算。
+
+~~~python
+z = torch.matmul(x,w) + b
+print(z.requires_grad)
+
+with torch.no_grad():
+    z = torch.matmul(x,w) + b
+	print(z.requires_grad)
+~~~
+
+另一种停止追踪计算过程的方法是使用detach()
+
+~~~python
+z = torch.matmul(x, w) + b
+z_det = z.detach()
+print(z_det.requires_grad)
+~~~
+
+### 5.3 计算图的更多知识
+
+
+
+
+
+## 6. 优化模型参数
+
+ 完整的步骤：
+
+1. 加载数据集
+2. 生成迭代器dataloader
+3. 定义模型
+4. 定义超参数
+5. 定义损失函数和优化器
+6. 编写训练循环和测试循环
+7. 运行！
+
+## 7. 保存和加载模型
+
+这章节我们将学习怎么保存模型的状态
+
+~~~python
+import torch
+import torch.onnx as onnx
+import torchvision.models as models
+~~~
+
+### 7.1 保存和加载模型权值
+
+PyToch模型将学习的参数存储在内部的状态字典中，叫做`state_dict`.我们可以通过torch.save 方法来保存它们。
+
+~~~python
+model = models.vgg16(pretrained =True)
+torch.save(model.state_dict(), 'model_weights.pth')
+~~~
+
+为了加载模型的权重，你需要创建相同的模型的实例，然后使用load_state_dict()方法加载参数
+
+~~~python
+model = models.vgg16
+model.load_state_dict(torch.load('model_weights.pth'))
+model.eval()
 ~~~
 

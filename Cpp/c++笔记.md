@@ -1,3 +1,5 @@
+
+
 # CPP 笔记
 
 ## 零. 基本语法
@@ -271,6 +273,205 @@ C/C++ MemoryManagement : [Building your own memory manager for C/C++ projects �
 游戏编程模式: [命令模式 · Design Patterns Revisited · 游戏设计模式 (tkchu.me)](https://gpp.tkchu.me/command.html)
 
 ###  1. OpenGL
+
+#### 1.1 Vertex Buffer
+
+GPU中存取数据的内存空间，我们以字节的形式将数据传送给GPU
+
+~~~c++
+unsigned int buffer;
+glGenBuffers(1, &buffer);
+glBindBuffer(GL_ARRAY_BUFFER, buffer); // 将标识符绑定到GL_ARRAY_BUFFER上面
+glBUfferData(GL_ARRAY_BUFFER, sizeof(data),data,GL_STATIC_DRAW); // 指定vertex buffer的大小
+~~~
+
+#### 1.2 指定属性
+
+OpenGL中每个vertex都是包含许多属性(比如位置，颜色，纹理等)的节点,我们通过glBufferData传递过去的是一堆字节流，我们需要告诉OpenGL怎么理解这段字节流
+
+~~~C++
+// 指定属性以及数据的分布
+glVertexAttribPointer(GLuint index,GLint size, GLenum type, GLBoolean normalized, GLsizei stride, const GLvoid* pointer)
+~~~
+
+上面函数每个参数的一次，可以去docs.gl查找
+
+指定完属性后，由于OpenGL对一个属性的默认为关闭，所以我们还需要打开属性
+
+~~~C++
+glEnableVertexAttribArray(index); // index 表示属性下标
+~~~
+
+#### 1.3 Shader
+
+Shader是GPU上运行的小程序，我们平时主要编程的，就是VertexShader，和FragmentShader，VertexShader处理节点信息，FragmentShader处理像素渲染信息。
+
+##### 1.3.1 shader 编写
+
+**vertex shader**
+
+~~~glsl
+#version 440
+layout(location =0) in vec4 position;
+void main(){
+    gl_Position = position
+}
+~~~
+
+**fragment shader**
+
+~~~glsl
+#version 440
+out vec4 color;
+void main(){
+    color = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+}
+~~~
+
+##### 1.3.2 CompileShader
+
+1. 获取源码
+2. 编译shader
+
+~~~C++
+static unsigned int CompileShader(const std::string& source){
+    unsigned int VertexShader;
+    glShaderSource(&VertexShader, 1, &source.c_str(),NULL);
+    glCompileShader(VertexShader);
+    // error handle here
+    
+    return VertexShader;
+}
+~~~
+
+
+
+##### 1.3.3 获取报错信息
+
+~~~C++
+unsigned int VertexShader;
+// Shader Error Handle
+int result;
+glGetShaderiv(VertexShader, GL_COMPILE_STATUS，&result);
+if(result == 0 ){
+    int length;
+    glGetShaderiv(VertexShader,GL_INTO_LOG_LENGTH,&length);
+    char* message = (char*)alloca(length*sizeof(char));
+    glGetShaderib(VertexShader, length,&length,message);
+    std::cout<<"Failed to Compile"<< "VertexShader"<<message<<std::endl;
+}
+~~~
+
+
+
+##### 1.3.4 LinkShader
+
+将vertexShader和fragmentShader链接到program里面
+
+~~~C++
+static unsigned int CreateProgram(const std::string& VertexSource, const std::string& FragmentSource){
+    unsigned int program = glCreateProgram();
+    unsigned int VertexShader = CompileShader(VertexSource);
+    unsigned int FragmentShader = CompileShader(FragmentSource);
+    
+    glAttachShader(program, VertexShader);
+    glAtttachShader(program, FragmentShader);
+    glLinkProgram(program);
+    
+    // Handle Error
+    int result;
+    glGetProgramiv(program, GL_LINK_STATUS, &result);
+    if(result == 0){
+        int length;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH,&length);
+        char* message = (char*) alloc(message* sizeof(char));
+        glGetProgramInfoLog(program, length, &length, message);
+        std::cout<<"Link Program Error: "<<message<<std::endl;
+    }
+    
+    // 删除shader
+    glDeleteShader(VertexShader);
+    glDeleteShader(FragmentShader);
+    
+    return program;
+}
+~~~
+
+
+
+#### 1.4 Index Buffer
+
+为了节省空间，我们使用IndexBuffer
+
+~~~C++
+unsigned int indices[] = {
+    0,1,2,
+    2,3,0
+}; // index必须是unsigned类型
+
+unsigned int ibo;
+glGenBuffers(1, &ibo)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+// render
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+~~~
+
+
+
+#### 1.5 OpenGL Error Handle
+
+~~~C++
+#define ASSERT(x) if(!(x)) __debugbreak()
+
+#ifdef GLDEBUG
+#define glCall(x) glClearError();\
+	x;\
+	ASSERT(glCheckError(#x , __FILE__, __LINE__));
+#else
+#define glCall(x) x;
+#endif
+static void glClearError(){
+    while(glGetError() != GL_NO_ERROR);
+}
+
+static bool glCheckError(const char* function, const char* file, int line){
+    if((GLenum error =glGetError()) != GL_NO_ERROR){
+        std::cout<<"OpenGL Error: ("<< error<<") ["<<function<<"] "<<file<<": "<<line<<std::endl;
+        return false;
+    }
+    return true;
+}
+
+
+// 使用debug函数
+glCall(glDrawElements(Gl_TRIANGLES, 6, GL_INT, nullptr));
+~~~
+
+#### 1.6 uniform
+
+`uniform`变量是除了使用`ertex buffer`以外，可以从cpu传递数据给gpu的方法，下面是要点
+
++ `uniform` 变量在每次draw函数调用时都会设置一次
++ 先获取`uniform`变量的位置，在设置`uniform`的值
+
+~~~C++
+int location = glCall(glGetUniformLocation(program, "u_Color"));
+ASSERT(location != -1);
+glUniform4f(location,1f,2f,3f,4f);
+~~~
+
+下面是`shader`文件的改变:
+~~~glsl
+uniform vec4 u_Color;  // 改成uniform 变量
+void main(){
+    color = u_Color;
+}
+~~~
+
+
+
 ###  2. Hazel
 ###  3. Premake
 
