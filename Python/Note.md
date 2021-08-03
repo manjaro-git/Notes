@@ -1510,8 +1510,70 @@ json 将对象转换成字符串
   + 只支持常规数据类型  str,int, dict,set,list,tuple
 
 ### 11.4  random模块
+```
+random.randint(10,100) 返回10-100的随机数,包括100
+random.randrange(10,100,step =2) 返回10-100,不包括100,步长为2
+random.random()  返回一个随机浮点数
+random.choice(’...')  返回随机字符串中的一个
+ramdom.sample('...', count)  返回随机字符串中的count个
+random.shuffle(list)   将lst(列表)里面的内容打乱,返回NOne
 
-### 11.5 正则模块
+```
+
+**random.sample()**
+```python
+import string
+random.sample(string.digits + string.ascii_lowercase, 5)
+```
 
 
 
+### 11.5 正则模块 re 的匹配语法:
++ re.match Match a regular expression pattern to the `beginning` of a string
++ re.search	 全局匹配，返回第一个 
++ re.findall 把所有匹配的字符放到列表中，并返回
++ re.split 以` 匹配到的字符当作列表分隔符`,并以列表返回
++ re.sub  匹配字符并替换  signature: sub(pattern, repl, string, count=0, flags=0)
++ re.fullmatch  Match of a regular expression pattern to `all` of a string
+ 
+```
+'.' : 匹配任意 **字符**
+'^' : 指定字符串开头
+'$' : 指定字符串结尾
+'*' : 匹配*前一个字符0次或多次
+'+' : 匹配+前一次或多次
+'?' : 匹配?前一个字符0次或多次
+'{m}': 匹配前一个字符m次
+'{n,m}' : 匹配前一个字符n到m次
+'|' : 或的关系
+'(...)' : 分组匹配 ，re.search("(abc){2}a(123)","abcabca34123),能够匹配abcabca123 '\A'  : 从头开始匹配，相当于re.match()  re.search("\Aabc","abcdd") 可以匹配
+'\Z'  : 匹配字符结尾 ，同$
+'\d'  : 数字 匹配 0-9 
+'\D'  : 匹配数字
+[...] : []中出现的任何一个，都可以匹配例如:[a-zA-Z]
+'\w'  : 匹配 [a-zA-Z0-9]
+'\W'  : 非[A-Za-z0-9]
+'s'   : 匹配空白字符  \t, \n, \r
+
+()分组匹配的方式可以通过groups()获得,得到分组的元组。
+'(?P<name>...)' 分组匹配，可以通过groupdict()得到字典,这个很重要
+```
+**可以在python里面直接 :help re 获得规则帮助**
+
+我们可以将正则模块编译成一个对象，像下面这样:
+```python
+import re
+prog = re.compile(pattern)
+result = prog.search(string)
+```
+
+**Flags**
++ re.I : 忽略大小写
++ re.M : 多行模式，改变 ‘^' 和 '$'的行为
++ re.S : 改变'.' 的行为，make the '.' special character match any character at all,including the newline.
++ re.X : 允许对表达式写注释,如下:
+```
+a = re.compile(r"""\d +# the integral part
+				\. # the decimal point
+				\d * # some fractional digits""",re.X)
+```
